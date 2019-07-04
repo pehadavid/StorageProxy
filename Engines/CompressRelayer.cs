@@ -136,7 +136,7 @@ namespace StorageProxy.Engines
 
             var tupleSize = SizeList.FirstOrDefault(x => x.Width == width && x.Height == height);
 
-            if (tupleSize.Height == 0 || tupleSize.Width == 0)
+            if (tupleSize == null || tupleSize.Height == 0 || tupleSize.Width == 0)
             {
                 throw new InvalidSegmentSizeException(
                     $"Cannot do the job for w: {width} h: {height}. No compatible size");

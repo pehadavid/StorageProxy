@@ -18,6 +18,17 @@ namespace StorageProxy
         protected string relayDomain;
         protected List<string> allowedHosts;
         protected List<ImageSize> imageSizes;
+
+        #region relayers
+
+        protected DecoderRelayer decoderRelayer;
+        protected CompressRelayer compressRelayer;
+        protected CacheInfoRelayer cacheInfoRelayer;
+        protected CacheDeleteRelayer cacheDeleteRelayer;
+        protected ProxyRelayer proxyRelayer;
+
+        #endregion
+        
         public Startup(IConfiguration configuration)
         {
             this.relayDomain = configuration["RelayDomain"];
@@ -25,6 +36,11 @@ namespace StorageProxy
             
             var hosts = configuration.GetSection("ListenOn").GetChildren().ToArray().Select(c => c.Value).ToArray();
             this.allowedHosts = hosts.ToList();
+            this.decoderRelayer = new DecoderRelayer(memoryCache, relayDomain, allowedHosts);
+            this.compressRelayer = new CompressRelayer(memoryCache, relayDomain, allowedHosts, imageSizes);
+            this.cacheInfoRelayer = new CacheInfoRelayer(memoryCache, relayDomain, allowedHosts);
+            this.cacheDeleteRelayer = new CacheDeleteRelayer(memoryCache, relayDomain, allowedHosts);
+            this.proxyRelayer = new ProxyRelayer(memoryCache, relayDomain, allowedHosts);
         }
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
@@ -59,19 +75,19 @@ namespace StorageProxy
             switch (segments[0])
             {
                 case "dlx":
-                    relayer = new DecoderRelayer(memoryCache, relayDomain, allowedHosts);
+                    relayer = decoderRelayer;
                     break;
                 case "compress":
-                    relayer = new CompressRelayer(memoryCache, relayDomain, allowedHosts, imageSizes);
+                    relayer = compressRelayer;
                     break;
                 case "cache-info":
-                    relayer = new CacheInfoRelayer(memoryCache, relayDomain, allowedHosts);
+                    relayer = cacheInfoRelayer;
                     break;
                 case "cache-delete":
-                    relayer = new CacheDeleteRelayer(memoryCache, relayDomain, allowedHosts);
+                    relayer = cacheDeleteRelayer;
                     break;
                 default:
-                    relayer = new ProxyRelayer(memoryCache, relayDomain, allowedHosts);
+                    relayer = proxyRelayer;
                     break;
                
             }
