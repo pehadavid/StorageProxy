@@ -65,6 +65,7 @@ namespace StorageProxy.Engines
 
                 var ifNoneMatch = context.Request.Headers["If-none-match"].FirstOrDefault();
                 context.Response.Headers.Add("Content-Type", resizedCached?.ContentType);
+                context.Response.Headers.Add("Content-Length", (resizedCached?.Content.Length).GetValueOrDefault(0).ToString());
                 if (resizedCached.Etag.Equals(ifNoneMatch))
                 {
                     await context.Response.WriteEmptyAsync(304);
@@ -73,6 +74,7 @@ namespace StorageProxy.Engines
                 {
                     AddHeaderCache(context.Response.Headers, resizedCached.Etag);
                     context.Response.Headers.Add("X-MEMORY-X", xmemValue);
+            
                     await context.Response.Body.WriteAsync(resizedCached.Content, 0, resizedCached.Content.Length);
                 }
             }
@@ -118,7 +120,7 @@ namespace StorageProxy.Engines
 
                 int width = int.Parse(mCollection.Groups[1].Value);
                 int height = int.Parse(mCollection.Groups[2].Value);
-                AssertSize(width, height);
+                AssertSize(width, height, s);
                 return (width, height);
             }
             catch (Exception)
@@ -127,28 +129,32 @@ namespace StorageProxy.Engines
             }
         }
 
-        private void AssertSize(int width, int height)
+        private void AssertSize(int width, int height, string sizeKey)
         {
             if (width < 1 || height < 1)
             {
                 throw new InvalidSegmentSizeException($"Cannot do the job for w: {width} h: {height}. Bad values.");
             }
 
-            var tupleSize = SizeList.FirstOrDefault(x => x.Width == width && x.Height == height);
+            var size = SizeList[sizeKey];
 
-            if (tupleSize == null || tupleSize.Height == 0 || tupleSize.Width == 0)
+            if (size == null || size.Height == 0 || size.Width == 0)
             {
                 throw new InvalidSegmentSizeException(
                     $"Cannot do the job for w: {width} h: {height}. No compatible size");
             }
         }
 
-        
-        public List<ImageSize> SizeList { get; protected set; }
+
+        private Dictionary<string, ImageSize> SizeList { get; set; }
         public CompressRelayer(IMemoryCache memcache, string rDomain, List<string> allowrdAllowedRemoteHosts, List<ImageSize>  _imageSizes) : base(
             memcache, rDomain, allowrdAllowedRemoteHosts)
         {
-            this.SizeList = _imageSizes;
+            this.SizeList = new Dictionary<string, ImageSize>();
+            foreach (ImageSize imageSize in _imageSizes)
+            {
+                SizeList.TryAdd($"{imageSize.Width}-{imageSize.Height}", imageSize);
+            }
         }
     }
 
