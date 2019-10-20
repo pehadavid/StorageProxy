@@ -11,6 +11,8 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  imageName: 'StorageProxy'
+  DOCKER_BUILDKIT: 1
 
 steps:
 - task: DotNetCoreCLI@0
@@ -20,7 +22,13 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: True
-- task: PublishBuildArtifacts@1
+- task: Docker@1
+  displayName: Build an image
+  inputs:
+    repository: $(imageName)
+    command: build
+    Dockerfile: Dockerfile
+- task: PublishBuildArtifacts@2
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
