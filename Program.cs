@@ -9,7 +9,11 @@ namespace StorageProxy
     {
         static void Main(string[] args)
         {
-            var config = new ConfigurationBuilder().AddCommandLine(args)
+            var config = new ConfigurationBuilder()
+                .AddCommandLine(args)
+                .AddJsonFile("appsettings.json", optional:true, reloadOnChange: true)
+                .AddJsonFile("secrets/appsettings.json", optional: true)
+                .AddEnvironmentVariables()
            .Build();
 
             var builder = WebHost.CreateDefaultBuilder(args)

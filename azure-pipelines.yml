@@ -22,13 +22,6 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: True
-- task: Docker@2
-  inputs:
-    containerRegistry: 'DockerHub p-a'
-    repository: 'storageproxy'
-    command: 'build'
-    Dockerfile: 'Dockerfile'
-    tags: 'latest'
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
