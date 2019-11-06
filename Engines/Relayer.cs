@@ -145,6 +145,6 @@ namespace StorageProxy.Engines
             memoryCache.Set(path, proxyContent, expire);
         }
 
-        public static string Cow => @"We need some milk. Moo ! Moo !";
+        public static string Cow => @"We need some milk. Moo ! Moo ! Moo !";
     }
 }

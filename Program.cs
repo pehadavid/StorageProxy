@@ -9,6 +9,7 @@ namespace StorageProxy
     {
         static void Main(string[] args)
         {
+            
             var config = new ConfigurationBuilder()
                 .AddCommandLine(args)
                 .AddJsonFile("appsettings.json", optional:true, reloadOnChange: true)
