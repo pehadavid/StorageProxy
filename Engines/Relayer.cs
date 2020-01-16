@@ -35,7 +35,7 @@ namespace StorageProxy.Engines
             context.Response.StatusCode = 200;
 
             string bodyTemplate =
-                $"<html><head> <style></style></head><body><p>{Cow}</p><p>{File.GetCreationTime(Assembly.GetExecutingAssembly().Location)}</p></body> </html>";
+                $"<html><head> <style></style></head><body><p>{Cow}</p><p>{File.GetCreationTime(Assembly.GetExecutingAssembly().Location)} - {Environment.Version}</p></body> </html>";
             return context.Response.WriteAsync(bodyTemplate);
         }
 
