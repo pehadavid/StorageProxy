@@ -142,7 +142,7 @@ namespace StorageProxy.Engines
         {
             TimeSpan expire = headersCacheControl?.MaxAge ?? DefaultExpire;
             proxyContent.Expires = expire;
-            memoryCache.Set(path, proxyContent, expire);
+            memoryCache.Store(path, proxyContent, expire);
         }
 
         public static string Cow => @"We need some milk. Moo ! Moo ! Moo !";
