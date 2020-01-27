@@ -49,11 +49,19 @@ namespace StorageProxy
             _memoryCache.TryGetValue(key, out value);
             if (value == null)
             {
-                var redisValue =  _multiplexer.GetDatabase(_dbIndex).StringGet(key.ToString());
-                if (redisValue.HasValue)
+                try
                 {
-                    value = JsonConvert.DeserializeObject(redisValue, value?.GetType(), _serializerSettings);
-                    _memoryCache.Set(key, value, TimeSpan.FromMinutes(1));
+                    var redisValue =  _multiplexer.GetDatabase(_dbIndex).StringGet(key.ToString());
+                    if (redisValue.HasValue)
+                    {
+                        value = JsonConvert.DeserializeObject(redisValue, value?.GetType(), _serializerSettings);
+                        _memoryCache.Set(key, value, TimeSpan.FromMinutes(1));
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($" {DateTime.UtcNow:g} - Redis Timeout for ${key.ToString()}");
+                    return false;
                 }
             }
 
@@ -62,7 +70,15 @@ namespace StorageProxy
 
         public void RedisStore(string key, object item, TimeSpan absoluteExpirationRelativeToNow)
         {
-            _multiplexer.GetDatabase(_dbIndex).StringSet(key, JsonConvert.SerializeObject(item,_serializerSettings));
+            try
+            {
+                _multiplexer.GetDatabase(_dbIndex)
+                    .StringSet(key, JsonConvert.SerializeObject(item, _serializerSettings));
+            }
+            catch
+            {
+                // ignored
+            }
         }
     }
 
