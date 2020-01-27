@@ -59,8 +59,8 @@ namespace StorageProxy
                     {
                         new DnsEndPoint(redisConfigurationSettings.Host, 6379)
                     }});
-                var db = multiplexer.GetDatabase(redisConfigurationSettings.Db);
-                this._cache = new DualCache(db, new MemoryCache(new MemoryCacheOptions() {}) {});
+       
+                this._cache = new DualCache(multiplexer, new MemoryCache(new MemoryCacheOptions() {}) {}, redisConfigurationSettings.Db);
             }
             else
             {

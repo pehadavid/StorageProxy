@@ -10,13 +10,15 @@ namespace StorageProxy
     public class DualCache : IMemoryCache
     {
         private MemoryCache _memoryCache;
-        private IDatabase _redisDatabase;
+        private readonly int _dbIndex;
+        private ConnectionMultiplexer _multiplexer;
         private JsonSerializerSettings _serializerSettings;
 
-        public DualCache(IDatabase redisDatabase, MemoryCache memoryCache)
+        public DualCache(ConnectionMultiplexer multiplexer, MemoryCache memoryCache, int dbIndex)
         {
-            _redisDatabase = redisDatabase;
+            _multiplexer = multiplexer;
             _memoryCache = memoryCache;
+            _dbIndex = dbIndex;
             this._serializerSettings = new JsonSerializerSettings()
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -28,7 +30,7 @@ namespace StorageProxy
         public void Dispose()
         {
             _memoryCache.Dispose();
-            this._redisDatabase = null;
+            this._multiplexer = null;
         }
 
         public ICacheEntry CreateEntry(object key)
@@ -39,7 +41,7 @@ namespace StorageProxy
 
         public void Remove(object key)
         {
-            _redisDatabase.KeyDelete(key.ToString());
+            _multiplexer.GetDatabase(_dbIndex).KeyDelete(key.ToString());
         }
 
         public bool TryGetValue(object key, out object value)
@@ -47,7 +49,7 @@ namespace StorageProxy
             _memoryCache.TryGetValue(key, out value);
             if (value == null)
             {
-                var redisValue = _redisDatabase.StringGet(key.ToString());
+                var redisValue =  _multiplexer.GetDatabase(_dbIndex).StringGet(key.ToString());
                 if (redisValue.HasValue)
                 {
                     value = JsonConvert.DeserializeObject(redisValue, value?.GetType(), _serializerSettings);
@@ -60,7 +62,7 @@ namespace StorageProxy
 
         public void RedisStore(string key, object item, TimeSpan absoluteExpirationRelativeToNow)
         {
-            _redisDatabase.StringSet(key, JsonConvert.SerializeObject(item,_serializerSettings));
+            _multiplexer.GetDatabase(_dbIndex).StringSet(key, JsonConvert.SerializeObject(item,_serializerSettings));
         }
     }
 
