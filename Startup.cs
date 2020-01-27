@@ -14,11 +14,13 @@ namespace StorageProxy
     {
 
         IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions() { });
-
+        private DualCache _dualCache;
         protected string relayDomain;
         protected List<string> allowedHosts;
         protected List<ImageSize> imageSizes;
 
+
+        protected RedisConfigurationSettings _redisConfigurationSettings;
         #region relayers
 
         protected DecoderRelayer decoderRelayer;
@@ -31,16 +33,19 @@ namespace StorageProxy
         
         public Startup(IConfiguration configuration)
         {
+            this._redisConfigurationSettings = 
+                configuration.GetSection("Redis").Get<RedisConfigurationSettings>() ?? new RedisConfigurationSettings() {Enabled = false};
             this.relayDomain = configuration["RelayDomain"];
             this.imageSizes = configuration.GetSection("AllowedSizes").Get<ImageSize[]>().ToList();
             
             var hosts = configuration.GetSection("ListenOn").GetChildren().ToArray().Select(c => c.Value).ToArray();
             this.allowedHosts = hosts.ToList();
-            this.decoderRelayer = new DecoderRelayer(memoryCache, relayDomain, allowedHosts);
-            this.compressRelayer = new CompressRelayer(memoryCache, relayDomain, allowedHosts, imageSizes);
-            this.cacheInfoRelayer = new CacheInfoRelayer(memoryCache, relayDomain, allowedHosts);
-            this.cacheDeleteRelayer = new CacheDeleteRelayer(memoryCache, relayDomain, allowedHosts);
-            this.proxyRelayer = new ProxyRelayer(memoryCache, relayDomain, allowedHosts);
+            var cacheManager = _redisConfigurationSettings.Enabled ? _dualCache : memoryCache;
+            this.decoderRelayer = new DecoderRelayer(cacheManager, relayDomain, allowedHosts);
+            this.compressRelayer = new CompressRelayer(cacheManager, relayDomain, allowedHosts, imageSizes);
+            this.cacheInfoRelayer = new CacheInfoRelayer(cacheManager, relayDomain, allowedHosts);
+            this.cacheDeleteRelayer = new CacheDeleteRelayer(cacheManager, relayDomain, allowedHosts);
+            this.proxyRelayer = new ProxyRelayer(cacheManager, relayDomain, allowedHosts);
         }
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
