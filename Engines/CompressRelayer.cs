@@ -84,19 +84,19 @@ namespace StorageProxy.Engines
             }
         }
 
-        private static JpegEncoder NiceEncoder
-        {
-            get
-            {
-                JpegEncoder encoder = new JpegEncoder
-                {
-                    IgnoreMetadata = true,
-                    Quality = 85,
-                    Subsample = JpegSubsample.Ratio420
-                };
-                return encoder;
-            }
-        }
+        // private static JpegEncoder NiceEncoder
+        // {
+        //     get
+        //     {
+        //         JpegEncoder encoder = new JpegEncoder
+        //         {
+        //             IgnoreMetadata = true,
+        //             Quality = 85,
+        //             Subsample = JpegSubsample.Ratio420
+        //         };
+        //         return encoder;
+        //     }
+        // }
 
         private byte[] JustResize(CachedProxyContent cached, (int, int) size)
         {
