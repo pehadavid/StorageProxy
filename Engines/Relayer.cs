@@ -122,6 +122,14 @@ namespace StorageProxy.Engines
                     return image.ToByteArray(MagickFormat.Png);
                 }
             }
+            else if (contentTypeMediaType.Contains("webp"))
+            {
+                using (MagickImage image = new MagickImage(innerBuffer))
+                {
+                    image.Strip();
+                    return image.ToByteArray(MagickFormat.WebP);
+                }
+            }
 
             return innerBuffer;
         }

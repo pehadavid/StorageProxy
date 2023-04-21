@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 
 namespace StorageProxy.Engines
 {
@@ -35,7 +35,7 @@ namespace StorageProxy.Engines
                     };
                     context.Response.StatusCode = 200;
                     context.Response.ContentType = "application/json";
-                    return context.Response.WriteAsync(JsonConvert.SerializeObject(cacheInfo));
+                    return context.Response.WriteAsync(JsonSerializer.Serialize(cacheInfo));
                 }
 
 

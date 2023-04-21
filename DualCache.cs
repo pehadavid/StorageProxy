@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace StorageProxy
@@ -12,17 +11,16 @@ namespace StorageProxy
         private MemoryCache _memoryCache;
         private readonly int _dbIndex;
         private ConnectionMultiplexer _multiplexer;
-        private JsonSerializerSettings _serializerSettings;
+        private JsonSerializerOptions _serializerSettings;
 
         public DualCache(ConnectionMultiplexer multiplexer, MemoryCache memoryCache, int dbIndex)
         {
             _multiplexer = multiplexer;
             _memoryCache = memoryCache;
             _dbIndex = dbIndex;
-            this._serializerSettings = new JsonSerializerSettings()
+            this._serializerSettings = new JsonSerializerOptions()
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                TypeNameHandling = TypeNameHandling.All
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
             };
         }
 
@@ -54,7 +52,7 @@ namespace StorageProxy
                     var redisValue =  _multiplexer.GetDatabase(_dbIndex).StringGet(key.ToString());
                     if (redisValue.HasValue)
                     {
-                        value = JsonConvert.DeserializeObject(redisValue, value?.GetType(), _serializerSettings);
+                        value = JsonSerializer.Deserialize(redisValue, value?.GetType(), _serializerSettings);
                         _memoryCache.Set(key, value, TimeSpan.FromMinutes(1));
                     }
                 }
@@ -73,7 +71,7 @@ namespace StorageProxy
             try
             {
                 _multiplexer.GetDatabase(_dbIndex)
-                    .StringSet(key, JsonConvert.SerializeObject(item, _serializerSettings));
+                    .StringSet(key, JsonSerializer.Serialize(item, _serializerSettings));
             }
             catch
             {

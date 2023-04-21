@@ -34,9 +34,12 @@ namespace StorageProxy
         
         public Startup(IConfiguration configuration)
         {
+            string format = configuration.GetSection("Format").Value;
+            CdnSettings.SetFormat(format);
             this._redisConfigurationSettings = 
                 configuration.GetSection("Redis").Get<RedisConfigurationSettings>() ?? new RedisConfigurationSettings() {Enabled = false};
             this.relayDomain = configuration["RelayDomain"];
+            
             this.imageSizes = configuration.GetSection("AllowedSizes").Get<ImageSize[]>().ToList();
             InitCache(_redisConfigurationSettings);
             

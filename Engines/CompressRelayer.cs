@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using ImageMagick;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
-using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace StorageProxy.Engines
 {
@@ -84,19 +83,7 @@ namespace StorageProxy.Engines
             }
         }
 
-        // private static JpegEncoder NiceEncoder
-        // {
-        //     get
-        //     {
-        //         JpegEncoder encoder = new JpegEncoder
-        //         {
-        //             IgnoreMetadata = true,
-        //             Quality = 85,
-        //             Subsample = JpegSubsample.Ratio420
-        //         };
-        //         return encoder;
-        //     }
-        // }
+  
 
         private byte[] JustResize(CachedProxyContent cached, (int, int) size)
         {
@@ -106,7 +93,7 @@ namespace StorageProxy.Engines
                 magickImage.Resize(size.Item1, size.Item2);
                 magickImage.Quality = 85;
                 magickImage.Density = new Density(192, DensityUnit.PixelsPerInch);
-                return magickImage.ToByteArray(MagickFormat.Pjpeg);
+                return magickImage.ToByteArray(CdnSettings.GetMagickFormat());
         
             }
         }
